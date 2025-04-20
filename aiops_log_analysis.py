@@ -1,6 +1,25 @@
+import os
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import IsolationForest
+from slack_sdk import WebClient
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+token = os.environ["SLACK_TOKEN"]
+
+
+# Set up a WebClient with the Slack OAuth token
+client = WebClient(token=token)
+
+# Disable pandas display truncation
+pd.set_option('display.max_rows', None)     # Show all rows
+pd.set_option('display.max_columns', None)  # Show all columns
+pd.set_option('display.width', None)        # No line wrapping
+pd.set_option('display.colheader_justify', 'left')  # Left-align column headers
+
 
 # Read log file
 log_file_path = "system_logs.txt"  # Update with your file path if needed
@@ -39,6 +58,19 @@ df["is_anomaly"] = df["anomaly"].apply(lambda x: "❌ Anomaly" if x == -1 else "
 
 # Print only detected anomalies
 anomalies = df[df["is_anomaly"] == "❌ Anomaly"]
-print("\n🔍 **Detected Anomalies:**\n", anomalies)
+
+message = f"\n🔍 **Detected Anomalies:**\n{anomalies}"
+
+#print(message)
+
+
+
+# Send a message to slack
+client.chat_postMessage(
+    channel="log-notifications", 
+    text=message, 
+    username="Bot User"
+)
+
 
 
